@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #eceff3;
+  --color-surface: #ffffff;
+  --color-ink: #172033;
+  --color-muted: #5d6779;
+  --color-line: #d5dbe4;
+  --color-line-soft: #e8ecf1;
+  --color-head: #f6f8fa;
+  --color-blue: #1f55cf;
+  --color-blue-dark: #173f9e;
+  --color-blue-soft: #e8effc;
+  --color-on-blue: #ffffff;
+  --color-note: #eef3fc;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Night view: follows the device until the visitor picks Day or Night. */
+@layer base {
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-paper: #0e121a;
+      --color-surface: #161c27;
+      --color-ink: #e7ebf2;
+      --color-muted: #9aa4b6;
+      --color-line: #2a3344;
+      --color-line-soft: #212938;
+      --color-head: #1b2230;
+      --color-blue: #6f9bff;
+      --color-blue-dark: #94b5ff;
+      --color-blue-soft: #1b2944;
+      --color-on-blue: #0b1220;
+      --color-note: #1b2944;
+      --color-danger: #f08a80;
+      --color-danger-soft: #3a1c1a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --color-paper: #0e121a;
+    --color-surface: #161c27;
+    --color-ink: #e7ebf2;
+    --color-muted: #9aa4b6;
+    --color-line: #2a3344;
+    --color-line-soft: #212938;
+    --color-head: #1b2230;
+    --color-blue: #6f9bff;
+    --color-blue-dark: #94b5ff;
+    --color-blue-soft: #1b2944;
+    --color-on-blue: #0b1220;
+    --color-note: #1b2944;
+    --color-danger: #f08a80;
+    --color-danger-soft: #3a1c1a;
+    color-scheme: dark;
+  }
+}
+
+@layer base {
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-blue);
+    outline-offset: 2px;
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+/* Logo: dark ink by day, light ink by night */
+.logo-night {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo-day {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .logo-night {
+    display: block;
+  }
+}
+:root[data-theme="dark"] .logo-day {
+  display: none;
+}
+:root[data-theme="dark"] .logo-night {
+  display: block;
+}
+
+@layer components {
+  .display {
+    font-stretch: 108%;
+    font-weight: 720;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  .field {
+    width: 100%;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+  }
+  .field:focus {
+    outline: 2px solid var(--color-blue);
+    outline-offset: -1px;
+    border-color: transparent;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    transition: background-color 120ms;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--color-blue);
+    color: var(--color-on-blue);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-blue-dark);
+  }
+  .btn-quiet {
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+  }
+  .btn-quiet:hover:not(:disabled) {
+    background: var(--color-blue-soft);
+  }
+  .label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
