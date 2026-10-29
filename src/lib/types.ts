@@ -4,6 +4,7 @@ export type Product = {
   size: string | null;
   price: number;
   category: string;
+  subcategory: string | null;
   description: string | null;
   is_active: boolean;
   sort_order: number;
@@ -37,6 +38,22 @@ export const CATEGORY_ORDER = [
   "Skin & hair care",
   "Raw materials",
   "Supplies",
+];
+
+/** Sections shown inside a category tab (mainly Peptides), in this order. New groups appear after these. */
+export const GROUP_ORDER = [
+  "Repair-research peptides",
+  "Copper peptides",
+  "Growth hormone secretagogues",
+  "Growth factors",
+  "Bioregulator peptides",
+  "Neuropeptides",
+  "Metabolic & mitochondrial compounds",
+  "Immune & signaling peptides",
+  "Melanocortin peptides",
+  "Cosmetic peptides",
+  "Vitamins, cofactors & blends",
+  "Other",
 ];
 
 export const STATUS_LABEL: Record<OrderStatus, string> = {

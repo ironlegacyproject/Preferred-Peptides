@@ -21,6 +21,7 @@ create table public.products (
   size        text,
   price       numeric(10,2) not null check (price >= 0),
   category    text not null default 'Peptides',
+  subcategory text,
   description text,
   is_active   boolean not null default true,
   sort_order  integer not null default 0,

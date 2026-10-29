@@ -2,20 +2,39 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { CATEGORY_ORDER, type Product } from "@/lib/types";
+import { CATEGORY_ORDER, GROUP_ORDER, type Product } from "@/lib/types";
 import { formatMoney } from "@/lib/format";
 import { useCart } from "./CartProvider";
 
-type Group = { key: string; name: string; category: string; variants: Product[] };
+type Group = { key: string; name: string; category: string; subcategory: string | null; variants: Product[] };
 
 function groupProducts(products: Product[]): Group[] {
   const map = new Map<string, Group>();
   for (const p of products) {
     const key = `${p.category}::${p.name}`;
-    if (!map.has(key)) map.set(key, { key, name: p.name, category: p.category, variants: [] });
+    if (!map.has(key)) map.set(key, { key, name: p.name, category: p.category, subcategory: p.subcategory, variants: [] });
     map.get(key)!.variants.push(p);
   }
   return [...map.values()];
+}
+
+/** Splits a tab's products into its groups (e.g. "Copper peptides"), in the shop's preferred order. */
+function splitByGroup(gs: Group[]): { title: string; items: Group[]; isCategory?: boolean }[] {
+  const byName = (a: Group, b: Group) => a.name.localeCompare(b.name, undefined, { numeric: true });
+  if (!gs.some((g) => g.subcategory)) return [{ title: "", items: [...gs].sort(byName) }];
+  const map = new Map<string, Group[]>();
+  for (const g of gs) {
+    const t = g.subcategory || "Other";
+    if (!map.has(t)) map.set(t, []);
+    map.get(t)!.push(g);
+  }
+  const rank = (t: string) => {
+    const i = GROUP_ORDER.indexOf(t);
+    return t === "Other" ? 999 : i === -1 ? 500 : i;
+  };
+  return [...map.entries()]
+    .sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0]))
+    .map(([title, items]) => ({ title, items: items.sort(byName) }));
 }
 
 export function Catalog({ products }: { products: Product[] }) {
@@ -90,28 +109,38 @@ export function Catalog({ products }: { products: Product[] }) {
         </p>
       )}
 
-      {byCategory.map(({ category: c, groups: gs }) => (
-        <section key={c} className="mt-5" aria-label={c}>
-          {searching && (
-            <div className="mb-3 flex items-baseline gap-3">
-              <h2 className="display text-xl">{c}</h2>
-              <span className="text-sm text-muted">
-                {gs.length} {gs.length === 1 ? "match" : "matches"}
-              </span>
-            </div>
-          )}
-          <ul className="grid list-none items-start gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,19rem),1fr))]">
-            {gs.map((g) => (
-              <ProductCard
-                key={g.key}
-                group={g}
-                open={openKey === g.key || (visible.length === 1 && searching)}
-                onToggle={() => setOpenKey(openKey === g.key ? null : g.key)}
-              />
+      {byCategory.map(({ category: c, groups: gs }) => {
+        const card = (g: Group) => (
+          <ProductCard
+            key={g.key}
+            group={g}
+            open={openKey === g.key || (visible.length === 1 && searching)}
+            onToggle={() => setOpenKey(openKey === g.key ? null : g.key)}
+          />
+        );
+        // While searching: one section per category. Otherwise: sections by group inside the tab.
+        const sections = searching ? [{ title: c, items: gs, isCategory: true }] : splitByGroup(gs);
+        return (
+          <div key={c} className="mt-5">
+            {sections.map((sec) => (
+              <section key={sec.title || "all"} className="mb-8" aria-label={sec.title || c}>
+                {sec.title && (
+                  <div className="mb-3 flex items-baseline gap-3">
+                    <h2 className={sec.isCategory ? "display text-xl" : "text-lg font-bold"}>{sec.title}</h2>
+                    <span className="text-sm text-muted">
+                      {sec.items.length}{" "}
+                      {sec.isCategory ? (sec.items.length === 1 ? "match" : "matches") : sec.items.length === 1 ? "product" : "products"}
+                    </span>
+                  </div>
+                )}
+                <ul className="grid list-none items-start gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(min(100%,19rem),1fr))]">
+                  {sec.items.map(card)}
+                </ul>
+              </section>
             ))}
-          </ul>
-        </section>
-      ))}
+          </div>
+        );
+      })}
 
       {cart.ready && cart.count > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface p-3 sm:hidden">
@@ -177,6 +206,9 @@ function ProductCard({ group, open, onToggle }: { group: Group; open: boolean; o
 
       {open && (
         <div id={bodyId} className="border-t border-line-soft px-[18px] pt-3 pb-4">
+          {group.variants[0].description && (
+            <p className="mb-3 text-sm leading-relaxed text-muted">{group.variants[0].description}</p>
+          )}
           <p className="mb-2 text-[13px] font-semibold text-muted">{single ? "Add to your order" : "Choose a size"}</p>
           <ul className="grid gap-1.5">
             {group.variants.map((v) => (

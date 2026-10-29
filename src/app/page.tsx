@@ -7,7 +7,7 @@ export default async function HomePage() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, size, price, category, description, is_active, sort_order")
+    .select("id, name, size, price, category, subcategory, description, is_active, sort_order")
     .eq("is_active", true)
     .order("sort_order")
     .order("name");

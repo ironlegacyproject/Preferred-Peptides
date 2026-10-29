@@ -121,24 +121,26 @@ export type ProductInput = {
   size: string;
   price: string;
   category: string;
+  subcategory: string;
   description: string;
   is_active: boolean;
-  sort_order: string;
+  /** Copy the group and description to every other size with the same name. */
+  applyToAllSizes: boolean;
 };
 
 function cleanProduct(p: ProductInput) {
   const name = p.name.trim();
   const price = Number(p.price);
-  if (!name) throw new Error("Name is required.");
+  if (!name) throw new Error("Enter a product name.");
   if (!Number.isFinite(price) || price < 0) throw new Error("Enter a price of 0 or more.");
   return {
-    name,
-    size: p.size.trim() || null,
+    name: name.slice(0, 120),
+    size: p.size.trim().slice(0, 40) || null,
     price: Math.round(price * 100) / 100,
-    category: p.category.trim() || "Peptides",
-    description: p.description.trim() || null,
+    category: p.category.trim().slice(0, 60) || "Peptides",
+    subcategory: p.subcategory.trim().slice(0, 60) || null,
+    description: p.description.trim().slice(0, 1000) || null,
     is_active: p.is_active,
-    sort_order: parseInt(p.sort_order, 10) || 0,
   };
 }
 
@@ -146,10 +148,29 @@ export async function saveProduct(id: string | null, input: ProductInput): Promi
   try {
     const supabase = await adminClient();
     const row = cleanProduct(input);
-    const { error } = id
-      ? await supabase.from("products").update(row).eq("id", id)
-      : await supabase.from("products").insert(row);
-    if (error) throw error;
+    if (id) {
+      const { error } = await supabase.from("products").update(row).eq("id", id);
+      if (error) throw error;
+    } else {
+      // New products go to the end of their category.
+      const { data: last } = await supabase
+        .from("products")
+        .select("sort_order")
+        .eq("category", row.category)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const { error } = await supabase.from("products").insert({ ...row, sort_order: (last?.sort_order ?? 0) + 1 });
+      if (error) throw error;
+    }
+    if (input.applyToAllSizes) {
+      const { error } = await supabase
+        .from("products")
+        .update({ subcategory: row.subcategory, description: row.description })
+        .eq("name", row.name)
+        .eq("category", row.category);
+      if (error) throw error;
+    }
     revalidatePath("/admin/products");
     revalidatePath("/");
     return { ok: true };
