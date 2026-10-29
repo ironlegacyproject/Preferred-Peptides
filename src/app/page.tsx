@@ -21,7 +21,7 @@ export default async function HomePage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-night.webp" alt={SHOP.name} width={720} height={370} className="logo-night h-auto w-full max-w-[19rem]" />
         <p className="max-w-[34rem] text-[1.05rem] text-muted">
-          Choose your products, pick a pickup day, and pay cash when you come in.
+          Order online, pick up locally, pay cash at the shop.
         </p>
       </section>
 
