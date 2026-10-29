@@ -114,6 +114,7 @@ A fresh setup only needs `schema.sql` and `seed_products.sql`. If you ran an ear
 
 1. `supabase/migration_002_waiver.sql` (Research Use Agreement)
 2. `supabase/migration_003_staff_inventory.sql` (staff accounts and inventory)
+3. `supabase/migration_004_product_groups.sql` (product groups and descriptions)
 
 Both are safe to run more than once.
 
