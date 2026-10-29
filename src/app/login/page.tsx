@@ -6,6 +6,13 @@ import { Suspense, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { AuthCard, safeNext } from "@/components/AuthCard";
 
+/** Shop accounts (like "admin") sign in with a username; it maps to this internal address. */
+const USERNAME_DOMAIN = "preferredpeptides.local";
+const toLoginEmail = (value: string) => {
+  const v = value.trim().toLowerCase();
+  return v.includes("@") ? v : `${v}@${USERNAME_DOMAIN}`;
+};
+
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
@@ -19,9 +26,9 @@ function LoginForm() {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const { error } = await createClient().auth.signInWithPassword({ email, password });
+    const { error } = await createClient().auth.signInWithPassword({ email: toLoginEmail(email), password });
     if (error) {
-      setError(error.message === "Invalid login credentials" ? "That email and password don’t match. Try again or reset your password." : error.message);
+      setError(error.message === "Invalid login credentials" ? "That email or username and password don’t match. Try again or reset your password." : error.message);
       setBusy(false);
       return;
     }
@@ -43,8 +50,8 @@ function LoginForm() {
     >
       <form onSubmit={onSubmit} className="grid gap-4">
         <div>
-          <label className="label" htmlFor="email">Email</label>
-          <input id="email" type="email" autoComplete="email" required className="field" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <label className="label" htmlFor="email">Email or username</label>
+          <input id="email" type="text" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="username" required className="field" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div>
           <label className="label" htmlFor="password">Password</label>

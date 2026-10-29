@@ -31,15 +31,16 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[1fr_20rem]">
       <section>
-        <h1 className="display text-3xl sm:text-4xl">My orders</h1>
+        <h1 className="display text-3xl sm:text-4xl">My account</h1>
+        <h2 className="mt-6 text-lg font-bold">Orders</h2>
         {password === "updated" && <p className="mt-3 text-blue">Password updated.</p>}
         {orders.length === 0 ? (
-          <div className="mt-6 rounded-lg border border-dashed border-line bg-surface p-8 text-center">
+          <div className="mt-3 rounded-lg border border-dashed border-line bg-surface p-8 text-center">
             <p>You haven’t placed an order yet.</p>
             <Link href="/" className="btn btn-primary mt-4">Browse the price list</Link>
           </div>
         ) : (
-          <ul className="mt-6 grid gap-3">
+          <ul className="mt-3 grid gap-3">
             {orders.map((o) => (
               <li key={o.id}>
                 <Link href={`/account/orders/${o.id}`} className="block rounded-lg border border-line bg-surface p-4 hover:border-blue">

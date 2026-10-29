@@ -20,7 +20,7 @@ export async function Header() {
           )}
           {user ? (
             <Link href="/account" className="rounded px-2 py-2 hover:bg-blue-soft">
-              My orders
+              My account
             </Link>
           ) : (
             <Link href="/login" className="rounded px-2 py-2 hover:bg-blue-soft">
