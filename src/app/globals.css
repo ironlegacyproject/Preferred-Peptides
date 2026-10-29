@@ -18,27 +18,8 @@
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Night view: follows the device until the visitor picks Day or Night. */
+/* Night view: only when the visitor picks it. Day is the default. */
 @layer base {
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --color-paper: #0e121a;
-      --color-surface: #161c27;
-      --color-ink: #e7ebf2;
-      --color-muted: #9aa4b6;
-      --color-line: #2a3344;
-      --color-line-soft: #212938;
-      --color-head: #1b2230;
-      --color-blue: #6f9bff;
-      --color-blue-dark: #94b5ff;
-      --color-blue-soft: #1b2944;
-      --color-on-blue: #0b1220;
-      --color-note: #1b2944;
-      --color-danger: #f08a80;
-      --color-danger-soft: #3a1c1a;
-      color-scheme: dark;
-    }
-  }
   :root[data-theme="dark"] {
     --color-paper: #0e121a;
     --color-surface: #161c27;
@@ -79,14 +60,6 @@
 /* Logo: dark ink by day, light ink by night */
 .logo-night {
   display: none;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .logo-day {
-    display: none;
-  }
-  :root:not([data-theme="light"]) .logo-night {
-    display: block;
-  }
 }
 :root[data-theme="dark"] .logo-day {
   display: none;

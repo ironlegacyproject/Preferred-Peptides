@@ -2,24 +2,16 @@
 
 import { useEffect, useState } from "react";
 
-function currentIsNight() {
-  const t = document.documentElement.dataset.theme;
-  return t ? t === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-}
+// Day view is the default. Night view only turns on when the visitor picks it.
+const isNight = () => document.documentElement.dataset.theme === "dark";
 
 export function ThemeToggle() {
   const [night, setNight] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    setNight(currentIsNight());
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => setNight(currentIsNight());
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
+  useEffect(() => setNight(isNight()), []);
 
   function toggle() {
-    const next = currentIsNight() ? "light" : "dark";
+    const next = isNight() ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     try {
       localStorage.setItem("pp-theme", next);
