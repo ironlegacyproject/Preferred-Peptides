@@ -27,11 +27,15 @@ function fail(e: unknown): AdminResult {
 const STATUSES: OrderStatus[] = ["pending", "ready", "picked_up", "cancelled", "no_show"];
 
 // ---------- Orders ----------
-export async function setOrderStatus(orderId: string, status: OrderStatus): Promise<AdminResult> {
+export async function setOrderStatus(orderId: string, status: OrderStatus, location?: string): Promise<AdminResult> {
   try {
     if (!STATUSES.includes(status)) throw new Error("Unknown status.");
     const supabase = await staffClient();
-    const { error } = await supabase.rpc("set_order_status", { p_order_id: orderId, p_status: status });
+    const { error } = await supabase.rpc("set_order_status", {
+      p_order_id: orderId,
+      p_status: status,
+      p_location: location ?? null,
+    });
     if (error) throw error;
     revalidatePath("/admin");
     return { ok: true };

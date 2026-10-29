@@ -3,13 +3,15 @@ import { getSession } from "@/lib/supabase/server";
 import { formatDate, formatMoney, formatWindow, shopToday } from "@/lib/format";
 import { STATUS_LABEL, type OrderItem, type OrderStatus } from "@/lib/types";
 import { OrderRow, type AdminOrder } from "./OrderRow";
+import { PickList } from "./PickList";
+import { SHOP_STATUS_LABEL } from "@/components/StatusBadge";
 
 type Search = { when?: string; status?: string; q?: string };
 
 const STATUS_FILTERS: { value: string; label: string; statuses: OrderStatus[] | null }[] = [
   { value: "open", label: "To fill", statuses: ["pending", "ready"] },
   { value: "pending", label: STATUS_LABEL.pending, statuses: ["pending"] },
-  { value: "ready", label: STATUS_LABEL.ready, statuses: ["ready"] },
+  { value: "ready", label: SHOP_STATUS_LABEL.ready, statuses: ["ready"] },
   { value: "picked_up", label: STATUS_LABEL.picked_up, statuses: ["picked_up"] },
   { value: "no_show", label: STATUS_LABEL.no_show, statuses: ["no_show"] },
   { value: "cancelled", label: STATUS_LABEL.cancelled, statuses: ["cancelled"] },
@@ -18,17 +20,18 @@ const STATUS_FILTERS: { value: string; label: string; statuses: OrderStatus[] | 
 
 export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams;
-  const when = sp.when ?? "upcoming";
+  const { supabase, profile } = await getSession();
+  const isAdmin = !!profile?.is_admin;
+  // Staff only work today's and upcoming pickup days.
+  const when = isAdmin ? (sp.when ?? "upcoming") : "upcoming";
   const statusFilter = STATUS_FILTERS.find((s) => s.value === sp.status) ?? STATUS_FILTERS[0];
   const q = (sp.q ?? "").trim().toLowerCase();
   const today = shopToday();
-  const { supabase, profile } = await getSession();
-  const isAdmin = !!profile?.is_admin;
 
   let query = supabase
     .from("orders")
     .select(
-      `id, order_number, status, total, customer_note, created_at, pickup_date_id, waiver_signed_name, waiver_version, waiver_accepted_at, picked_up_at, ${isAdmin ? "order_admin_notes(note), " : ""}profiles(full_name, phone, email), pickup_dates!inner(id, pickup_date, start_time, end_time), order_items(id, product_name, product_size, unit_price, quantity, line_total)`,
+      `id, order_number, status, total, customer_note, created_at, pickup_date_id, waiver_signed_name, waiver_version, waiver_accepted_at, picked_up_at, staged_location, staged_at, ${isAdmin ? "order_admin_notes(note), profiles:profiles!orders_user_id_fkey(full_name, phone, email)" : "profiles:profiles!orders_user_id_fkey(full_name)"}, staged_by_profile:profiles!orders_staged_by_fkey(full_name), picked_up_by_profile:profiles!orders_picked_up_by_fkey(full_name), pickup_dates!inner(id, pickup_date, start_time, end_time), order_items(id, product_name, product_size, unit_price, quantity, line_total)`,
     )
     .order("created_at", { ascending: true })
     .limit(1000);
@@ -49,7 +52,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       (o) =>
         String(o.order_number).includes(q) ||
         o.profiles?.full_name.toLowerCase().includes(q) ||
-        o.profiles?.phone.toLowerCase().includes(q) ||
+        o.profiles?.phone?.toLowerCase().includes(q) ||
         o.profiles?.email?.toLowerCase().includes(q),
     );
   }
@@ -77,12 +80,13 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
         <form className="flex gap-2" action="/admin">
           <input type="hidden" name="when" value={when} />
           <input type="hidden" name="status" value={statusFilter.value} />
-          <input name="q" defaultValue={sp.q} placeholder="Name, phone, email or order #" className="field !w-64" aria-label="Search orders" />
+          <input name="q" defaultValue={sp.q} placeholder={isAdmin ? "Name, phone, email or order #" : "Name or order #"} className="field !w-64" aria-label="Search orders" />
           <button className="btn btn-quiet">Search</button>
         </form>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        {isAdmin && (
         <div className="flex gap-1" aria-label="Pickup days">
           {[
             ["upcoming", "Upcoming"],
@@ -94,6 +98,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             </Link>
           ))}
         </div>
+        )}
         <div className="flex flex-wrap gap-1" aria-label="Status">
           {STATUS_FILTERS.map((s) => (
             <Link key={s.value} href={link({ status: s.value })} className={`rounded-full border px-3 py-1 font-semibold ${statusFilter.value === s.value ? "border-ink bg-ink text-surface" : "border-line bg-surface"}`}>
@@ -129,19 +134,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                 {list.length} {list.length === 1 ? "order" : "orders"}, {formatMoney(cash)} expected cash
               </span>
             </div>
-            {pick.size > 0 && (
-              <details className="mt-3 rounded-md border border-line bg-surface">
-                <summary className="cursor-pointer px-3 py-2 text-sm font-semibold">Pick list for this day ({pick.size} products)</summary>
-                <ul className="columns-1 gap-6 px-3 pb-3 text-sm sm:columns-2">
-                  {[...pick.entries()].sort().map(([k, n]) => (
-                    <li key={k} className="flex justify-between gap-3 border-b border-line py-1">
-                      <span>{k}</span>
-                      <span className="font-bold tabular-nums">{n}</span>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
+            {pick.size > 0 && <PickList dayId={day.id} items={[...pick.entries()].sort()} />}
             <ul className="mt-3 grid gap-3">
               {list.map((o) => (
                 <OrderRow key={o.id} order={o} days={allDays ?? []} isAdmin={isAdmin} />

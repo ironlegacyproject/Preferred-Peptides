@@ -64,7 +64,17 @@ This agreement is a starting template, not legal advice. Have a lawyer licensed 
 
 ## Office staff
 
-Staff accounts can see orders and mark them Ready, Picked up, or Not picked up. They can't see inventory, products, pickup days, private notes, or the staff list.
+Staff accounts handle filling and handing off orders:
+
+- See today's and upcoming orders, grouped by pickup day, with customer names and cash totals
+- Tick items off the day's **pick list** as they pull them
+- **Mark staged** and enter where the bag is (for example "Bin 4"); the order then shows "Staged: Bin 4" with who staged it and when
+- **Mark picked up and paid**, which first shows the cash amount to collect; it records who handed it off
+- Mark an order **Not picked up**
+
+Staff can't cancel orders, undo a pickup, move orders between days, see customer phone numbers or emails, see past days, or open inventory, products, pickup days, private notes or the staff list. Customers see the "Staged" step as "Ready for pickup."
+
+To add staff:
 
 1. Have the staff member create an account on the site.
 2. Go to **Admin → Staff**, enter their email, and choose **Give staff access**.
@@ -115,6 +125,7 @@ A fresh setup only needs `schema.sql` and `seed_products.sql`. If you ran an ear
 1. `supabase/migration_002_waiver.sql` (Research Use Agreement)
 2. `supabase/migration_003_staff_inventory.sql` (staff accounts and inventory)
 3. `supabase/migration_004_product_groups.sql` (product groups and descriptions)
+4. `supabase/migration_005_staging.sql` (staging bins and staff limits)
 
 Both are safe to run more than once.
 

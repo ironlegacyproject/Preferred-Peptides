@@ -14,8 +14,10 @@ export default async function StaffPage() {
       <section>
         <h1 className="display text-3xl sm:text-4xl">Office staff</h1>
         <p className="mt-2 max-w-xl text-muted">
-          Staff sign in like customers and see an Orders link in the header. They can view orders and mark them ready,
-          picked up, or not picked up. They can’t see inventory, products, pickup days, private notes, or this page.
+          Staff sign in like customers and see an Orders link in the header. They see today’s and upcoming orders with
+          customer names and totals, stage orders in a bin, and mark them picked up and paid or not picked up. They
+          can’t cancel orders, undo a pickup, see customer phone numbers or emails, or open inventory, products, pickup
+          days, private notes or this page.
         </p>
         <StaffManager staff={data ?? []} />
       </section>
